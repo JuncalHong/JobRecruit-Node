@@ -1,1 +1,3 @@
-config.js
+var config={
+	ListeningPort:3000,
+}

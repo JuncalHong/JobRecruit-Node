@@ -5,31 +5,68 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session=require('express-session');
 var ejs = require('ejs');
-var routes = require('./routes/index');
-var ueditor = require("ueditor");
+
+
+
+var index = require('./routes/index');
+
 
 var app = express();
 
-// 中间件
-app.use(bodyParser.json());
 
-app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(cookieParser());
 
-app.use(require('stylus').middleware(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.urlencoded({
-    extended: true
-}))
-app.use(bodyParser.json());
-app.use(cookieParser());
 //模板引擎
-app.use(express.static(path.join(__dirname, 'public')));
+
 app.set('views', path.join(__dirname, 'views'));
 app.engine('.html', ejs.__express);
 app.set('view engine', 'html');
 
+// 中间件
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: false
+}))
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+
+//session setting
+app.use(session({
+  secret: 'secret',
+  name:'recurit',
+  cookie:{
+    maxAge: 1000*60*30
+  },
+  resave:true,
+  saveUninitialized:true
+}));
+
+app.use('/index', index);
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+//database setting
+app.use(bodyParser.urlencoded({extended:true}));
+//app.use(multer());
+//app.use(cookieParser());
+
+module.exports = app;
